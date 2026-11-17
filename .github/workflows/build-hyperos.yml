@@ -1,4 +1,4 @@
-name: Canli macOS 26 Masaustu (Tarayici)
+name: Canli macOS 26 Masaustu (Pinggy)
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 360
     steps:
-      - name: Tarayici Tabanli macOS 26 Masaustunu Baslat
+      - name: macOS 26 Masaustu ve Web Tunelini Baslat
         run: |
           # 1. Mac VNC Ekran Paylasimini Ac
           sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
@@ -23,17 +23,14 @@ jobs:
             -clientopts -setvncpw -vncpw "${{ github.event.inputs.vnc_password }}" \
             -restart -agent -privs -all
 
-          # 2. Tarayicidan erisim icin noVNC ve Cloudflared kur
-          brew install cloudflared python3
+          # 2. Tarayici arayuzunu (noVNC) kur
+          brew install websockify
           git clone --depth 1 https://github.com /tmp/novnc
-          /tmp/novnc/utils/novnc_proxy --vnc localhost:5900 --listen 6080 &
+          websockify --web /tmp/novnc 6080 localhost:5900 &
           sleep 3
 
-          # 3. Tuneli baslat ve linki ekrana zorla yazdir
-          cloudflared tunnel --url http://localhost:6080 > /tmp/tunnel.log 2>&1 &
-          sleep 8
-          echo "========================================================"
-          echo "MACOS 26 MASAUSTU LINKINIZ (TARAYICIDA ACIN):"
-          grep -o 'https://[-0-9a-z]*\.trycloudflare\.com' /tmp/tunnel.log | head -n 1
-          echo "========================================================"
-          tail -f /tmp/tunnel.log
+          # 3. Pinggy ile aninda tarayici linki uret ve ekrana yazdir
+          echo "=========================================================="
+          echo "ASAGIDAKI .pinggy.link ADRESINE TIKLAYIP MASAUSTUNE BAGLANIN:"
+          echo "=========================================================="
+          ssh -o StrictHostKeyChecking=no -R 80:localhost:6080 a.pinggy.io
