@@ -1,23 +1,32 @@
-name: macOS 26 HyperOS 4 Debloat ve Build
+name: Canli macOS 26 Masaustu (VNC)
 
 on:
   workflow_dispatch:
     inputs:
-      rom_url:
-        description: 'HyperOS 4 ROM veya GSI Indirme Linki'
-        required: false
+      vnc_password:
+        description: 'Mac Masaustu Sifreniz (En az 6 karakter)'
+        required: true
+        default: '123456'
         type: string
 
 jobs:
-  build-on-mac:
+  macos-gui:
     runs-on: macos-26
+    timeout-minutes: 360
     steps:
-      - name: Depoyu Cek
-        uses: actions/checkout@v4
-
-      - name: macOS 26 Ortamini Hazirla
+      - name: VNC Ekran Paylasimini ve Tuneli Baslat
         run: |
-          sw_vers
-          uname -m
-          brew install brotli p7zip gnu-sed coreutils
-          echo "macOS 26 derleme sunucusu hazir!"
+          # VNC sifresini ve ekran paylasimini aktif et
+          sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
+            -activate -configure -access -on \
+            -clientopts -setvnclegacy -vnclegacy yes \
+            -clientopts -setvncpw -vncpw "${{ github.event.inputs.vnc_password }}" \
+            -restart -agent -privs -all
+
+          # Ucretsiz tunel aracini (cloudflared) kur ve VNC portunu (5900) disari ac
+          brew install cloudflared
+          echo "=========================================="
+          echo "MACOS 26 CANLI MASAUSTU HAZIRLANIYOR..."
+          echo "Asagidaki trycloudflare.com adresini kopyalayip VNC Viewer'a yapistirin!"
+          echo "=========================================="
+          cloudflared tunnel --url tcp://localhost:5900
