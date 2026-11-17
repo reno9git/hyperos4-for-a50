@@ -1,0 +1,23 @@
+name: macOS 26 HyperOS 4 Debloat ve Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      rom_url:
+        description: 'HyperOS 4 ROM veya GSI Indirme Linki'
+        required: false
+        type: string
+
+jobs:
+  build-on-mac:
+    runs-on: macos-26
+    steps:
+      - name: Depoyu Cek
+        uses: actions/checkout@v4
+
+      - name: macOS 26 Ortamini Hazirla
+        run: |
+          sw_vers
+          uname -m
+          brew install brotli p7zip gnu-sed coreutils
+          echo "macOS 26 derleme sunucusu hazir!"
